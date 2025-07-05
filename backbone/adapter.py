@@ -55,10 +55,10 @@ class Bottleneck(nn.Module):
 
 
 class SepConv(nn.Module):
-
     def __init__(self, channel_in, channel_out, kernel_size=3, stride=2, padding=1, affine=True):
         super(SepConv, self).__init__()
         self.op = nn.Sequential(
+            # 修改分组数为 channel_in
             nn.Conv2d(channel_in, channel_in, kernel_size=kernel_size, stride=stride, padding=padding, groups=channel_in, bias=False),
             nn.Conv2d(channel_in, channel_in, kernel_size=1, padding=0, bias=False),
             nn.BatchNorm2d(channel_in, affine=affine),
