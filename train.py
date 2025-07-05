@@ -44,7 +44,8 @@ trainloader = tl(params=args.datasets,isDense=args.large_trans,bs=args.batch_siz
 testloader = tel(params=args.datasets,isDense=args.large_trans,bs=args.batch_size)
 svloader = svl()
 
-device = torch.device("cuda:"+str(args.visible_device_single) if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda:"+str(args.visible_device_single) if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 net = get_model(args)
 ada_net = adapter_2(num_classes=args.num_classes)
