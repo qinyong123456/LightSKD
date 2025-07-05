@@ -55,10 +55,10 @@ class Bottleneck(nn.Module):
 
 
 class SepConv(nn.Module):
+
     def __init__(self, channel_in, channel_out, kernel_size=3, stride=2, padding=1, affine=True):
         super(SepConv, self).__init__()
         self.op = nn.Sequential(
-            # 修改分组数为 channel_in
             nn.Conv2d(channel_in, channel_in, kernel_size=kernel_size, stride=stride, padding=padding, groups=channel_in, bias=False),
             nn.Conv2d(channel_in, channel_in, kernel_size=1, padding=0, bias=False),
             nn.BatchNorm2d(channel_in, affine=affine),
@@ -75,12 +75,14 @@ class SepConv(nn.Module):
 class Istr_2(nn.Module):
     def __init__(self, block, num_classes=120):
         super(Istr_2, self).__init__()
+        # 修改这里的通道数
+        in_channels = 128 * block.expansion
         self.attention2 = nn.Sequential(
             SepConv(
-                channel_in=128 * block.expansion,
-                channel_out=128 * block.expansion
+                channel_in=in_channels,
+                channel_out=in_channels
             ),
-            nn.BatchNorm2d(128 * block.expansion),
+            nn.BatchNorm2d(in_channels),
             nn.ReLU(),
             nn.Upsample(scale_factor=2, mode='bilinear',align_corners=True),
             nn.Sigmoid()
@@ -88,7 +90,7 @@ class Istr_2(nn.Module):
 
         self.scala2 = nn.Sequential(
             SepConv(
-                channel_in=128 * block.expansion,
+                channel_in=in_channels,
                 channel_out=256 * block.expansion,
             ),
             SepConv(
@@ -113,12 +115,14 @@ class Istr_2(nn.Module):
 class Istr_1(nn.Module):
     def __init__(self, block, num_classes=100):
         super(Istr_1, self).__init__()
+        # 修改这里的通道数
+        in_channels = 64 * block.expansion
         self.attention1 = nn.Sequential(
             SepConv(
-                channel_in=64 * block.expansion,
-                channel_out=64 * block.expansion
+                channel_in=in_channels,
+                channel_out=in_channels
             ),
-            nn.BatchNorm2d(64 * block.expansion),
+            nn.BatchNorm2d(in_channels),
             nn.ReLU(),
             nn.Upsample(scale_factor=2, mode='bilinear'),
             nn.Sigmoid()
@@ -126,7 +130,7 @@ class Istr_1(nn.Module):
 
         self.scala1 = nn.Sequential(
             SepConv(
-                channel_in=64 * block.expansion,
+                channel_in=in_channels,
                 channel_out=128 * block.expansion
             ),
             SepConv(
@@ -153,12 +157,14 @@ class Istr_1(nn.Module):
 class Istr_3(nn.Module):
     def __init__(self, block, num_classes=100):
         super(Istr_3, self).__init__()
+        # 修改这里的通道数
+        in_channels = 256 * block.expansion
         self.attention3 = nn.Sequential(
             SepConv(
-                channel_in=256 * block.expansion,
-                channel_out=256 * block.expansion
+                channel_in=in_channels,
+                channel_out=in_channels
             ),
-            nn.BatchNorm2d(256 * block.expansion),
+            nn.BatchNorm2d(in_channels),
             nn.ReLU(),
             nn.Upsample(scale_factor=2, mode='bilinear'),
             nn.Sigmoid()
@@ -166,7 +172,7 @@ class Istr_3(nn.Module):
 
         self.scala3 = nn.Sequential(
             SepConv(
-                channel_in=256 * block.expansion,
+                channel_in=in_channels,
                 channel_out=512 * block.expansion,
             ),
             nn.AvgPool2d(4, 4)
