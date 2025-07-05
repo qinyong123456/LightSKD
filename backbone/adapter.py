@@ -73,10 +73,11 @@ class SepConv(nn.Module):
         return self.op(x)
 
 class Istr_2(nn.Module):
-    def __init__(self, block, num_classes=120):
+    def __init__(self, block, num_classes=100):
         super(Istr_2, self).__init__()
-        # 修改这里的通道数
-        in_channels = 128 * block.expansion
+        # 直接使用128作为输入通道数，因为mids[1]的通道数是128
+        in_channels = 128
+        
         self.attention2 = nn.Sequential(
             SepConv(
                 channel_in=in_channels,
@@ -84,30 +85,28 @@ class Istr_2(nn.Module):
             ),
             nn.BatchNorm2d(in_channels),
             nn.ReLU(),
-            nn.Upsample(scale_factor=2, mode='bilinear',align_corners=True),
+            nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True),
             nn.Sigmoid()
         )
 
         self.scala2 = nn.Sequential(
             SepConv(
                 channel_in=in_channels,
-                channel_out=256 * block.expansion,
+                channel_out=256
             ),
             SepConv(
-                channel_in=256 * block.expansion,
-                channel_out=512 * block.expansion,
+                channel_in=256,
+                channel_out=512
             ),
             nn.AdaptiveAvgPool2d((1,1))
         )
 
-        self.fc2 = nn.Linear(512 * block.expansion, num_classes)
+        self.fc2 = nn.Linear(512, num_classes)
 
-    def forward(self,x):
-        #print(x.size())
+    def forward(self, x):
         fea2 = self.attention2(x)
         fea2 = fea2 * x
         out2_feature = self.scala2(fea2).view(x.size(0), -1)
-        #print(out2_feature.size())
         out2 = self.fc2(out2_feature)
 
         return out2
@@ -115,8 +114,9 @@ class Istr_2(nn.Module):
 class Istr_1(nn.Module):
     def __init__(self, block, num_classes=100):
         super(Istr_1, self).__init__()
-        # 修改这里的通道数
-        in_channels = 64 * block.expansion
+        # 使用64作为输入通道数
+        in_channels = 64
+        
         self.attention1 = nn.Sequential(
             SepConv(
                 channel_in=in_channels,
@@ -131,22 +131,22 @@ class Istr_1(nn.Module):
         self.scala1 = nn.Sequential(
             SepConv(
                 channel_in=in_channels,
-                channel_out=128 * block.expansion
+                channel_out=128
             ),
             SepConv(
-                channel_in=128 * block.expansion,
-                channel_out=256 * block.expansion
+                channel_in=128,
+                channel_out=256
             ),
             SepConv(
-                channel_in=256 * block.expansion,
-                channel_out=512 * block.expansion
+                channel_in=256,
+                channel_out=512
             ),
             nn.AvgPool2d(4, 4)
         )
 
-        self.fc1 = nn.Linear(512 * block.expansion, num_classes)
+        self.fc1 = nn.Linear(512, num_classes)
 
-    def forward(self,x):
+    def forward(self, x):
         fea1 = self.attention1(x)
         fea1 = fea1 * x
         out1_feature = self.scala1(fea1).view(x.size(0), -1)
@@ -157,8 +157,9 @@ class Istr_1(nn.Module):
 class Istr_3(nn.Module):
     def __init__(self, block, num_classes=100):
         super(Istr_3, self).__init__()
-        # 修改这里的通道数
-        in_channels = 256 * block.expansion
+        # 使用256作为输入通道数
+        in_channels = 256
+        
         self.attention3 = nn.Sequential(
             SepConv(
                 channel_in=in_channels,
@@ -173,14 +174,14 @@ class Istr_3(nn.Module):
         self.scala3 = nn.Sequential(
             SepConv(
                 channel_in=in_channels,
-                channel_out=512 * block.expansion,
+                channel_out=512
             ),
             nn.AvgPool2d(4, 4)
         )
 
-        self.fc3 = nn.Linear(512 * block.expansion, num_classes)
+        self.fc3 = nn.Linear(512, num_classes)
 
-    def forward(self,x):
+    def forward(self, x):
         fea3 = self.attention3(x)
         fea3 = fea3 * x
         out3_feature = self.scala3(fea3).view(x.size(0), -1)
@@ -190,10 +191,10 @@ class Istr_3(nn.Module):
     
     
 def adapter_1(num_classes=100):
-    return Istr_1(BasicBlock,num_classes)
+    return Istr_1(BasicBlock, num_classes)
 
 def adapter_2(num_classes=100):
-    return Istr_2(Bottleneck,num_classes)
+    return Istr_2(Bottleneck, num_classes)
 
 def adapter_3(num_classes=100):
-    return Istr_3(BasicBlock,num_classes)
+    return Istr_3(BasicBlock, num_classes)
